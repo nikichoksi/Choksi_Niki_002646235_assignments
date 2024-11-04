@@ -1,0 +1,10 @@
+{
+	"name": "ls_ncfall2024",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://ncfall2024.dfs.core.windows.net/"
+		}
+	}
+}
