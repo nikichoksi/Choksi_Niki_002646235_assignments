@@ -213,7 +213,7 @@
 								},
 								"sink": {
 									"name": "LICENSE_ISSUE_DATE",
-									"type": "DateTime"
+									"type": "String"
 								}
 							},
 							{
@@ -282,7 +282,7 @@
 									"type": "String"
 								},
 								"sink": {
-									"name": "DI_CREATED_DT",
+									"name": "DI_CREATED_DATE",
 									"type": "DateTime"
 								}
 							},
