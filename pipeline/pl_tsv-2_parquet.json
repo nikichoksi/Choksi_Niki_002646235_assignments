@@ -195,7 +195,14 @@
 							"type": "SnowflakeImportCopyCommand"
 						}
 					},
-					"enableStaging": false,
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "ls_stgblobfall2024",
+							"type": "LinkedServiceReference"
+						},
+						"path": "snowstaging"
+					},
 					"translator": {
 						"type": "TabularTranslator",
 						"mappings": [
