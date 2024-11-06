@@ -1,0 +1,11 @@
+{
+	"name": "ls_stgblobfall2024",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://stgblobfall2024nc.blob.core.windows.net/",
+			"accountKind": "StorageV2"
+		}
+	}
+}
