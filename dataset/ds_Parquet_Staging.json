@@ -1,0 +1,19 @@
+{
+	"name": "ds_Parquet_Staging",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_ncfall2024",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "Seattle_Pet_Licenses_20241007.parquet"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
