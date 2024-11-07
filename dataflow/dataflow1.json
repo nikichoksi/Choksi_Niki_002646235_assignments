@@ -1,0 +1,104 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_geodata",
+						"type": "DatasetReference"
+					},
+					"name": "sourcesnowflakegeodata"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_locationdim",
+						"type": "DatasetReference"
+					},
+					"name": "sourcesnowflakelocation"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_locationdim",
+						"type": "DatasetReference"
+					},
+					"name": "sinkLocation"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SourceDataWithSK"
+				},
+				{
+					"name": "surrogateKey"
+				},
+				{
+					"name": "DerivedColumns"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     DI_JOBID as string (\"1\")",
+				"}",
+				"source(output(",
+				"          state_fips as string,",
+				"          state as string,",
+				"          state_abbr as string,",
+				"          zipcode as string,",
+				"          county as string,",
+				"          city as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> sourcesnowflakegeodata",
+				"source(output(",
+				"          MAXLOCATIONSK as decimal(10,0)",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     query: 'SELECT NVL(MAX(LOCATION_SK),0) AS\\nMaxLocationSK FROM DEMO.Location_DIM',",
+				"     format: 'query') ~> sourcesnowflakelocation",
+				"sourcesnowflakegeodata, sourcesnowflakelocation join(1==1,",
+				"     joinType:'cross',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> SourceDataWithSK",
+				"SourceDataWithSK keyGenerate(output(RowNum as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey",
+				"surrogateKey derive(LOCATION_SK = MAXLOCATIONSK + RowNum,",
+				"          DI_CREATED_DT = toString(currentDate(),'yyyy-MM-dd'),",
+				"          DI_JOB_ID = $DI_JOBID) ~> DerivedColumns",
+				"DerivedColumns sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          LOCATION_SK as string,",
+				"          ZIP as string,",
+				"          CITY as string,",
+				"          STATE as string,",
+				"          DATE_TO_WAREHOUSE as string,",
+				"          DI_JOBID as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     stageInsert: true,",
+				"     mapColumn(",
+				"          LOCATION_SK,",
+				"          ZIP = zipcode,",
+				"          CITY = city,",
+				"          STATE = state,",
+				"          DATE_TO_WAREHOUSE = DI_CREATED_DT,",
+				"          DI_JOBID = DI_JOB_ID",
+				"     )) ~> sinkLocation"
+			]
+		}
+	}
+}
