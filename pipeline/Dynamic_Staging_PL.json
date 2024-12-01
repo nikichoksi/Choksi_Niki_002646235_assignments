@@ -1,0 +1,21 @@
+{
+	"name": "Dynamic_Staging_PL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_Table_Names",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 4,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": []
+			}
+		],
+		"annotations": []
+	}
+}
