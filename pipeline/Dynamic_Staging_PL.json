@@ -1,0 +1,249 @@
+{
+	"name": "Dynamic_Staging_PL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_Table_Names",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 4,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select t.name as table_name, s.name schema_name\nfrom sys.tables t join sys.schemas s\non t.schema_id=s.schema_id\nwhere type='U'\nand s.name='@{pipeline().parameters.sname}'; ",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema_name": "dbo",
+							"table_name": "STORE"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Table_Names",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_Table_Names').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 10,
+					"activities": [
+						{
+							"name": "SourceTable2Parquet",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"additionalColumns": [
+										{
+											"name": "DI_JOB_ID",
+											"value": {
+												"value": "@pipeline().parameters.JobID",
+												"type": "Expression"
+											}
+										},
+										{
+											"name": "DI_CREATED_DT",
+											"value": {
+												"value": "@utcNow()",
+												"type": "Expression"
+											}
+										}
+									],
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "ls_stgblobfall2024",
+										"type": "LinkedServiceReference"
+									},
+									"path": "snowstaging"
+								},
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "License_Issue_Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LICENSE_ISSUE_DATE",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "License_Number",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LICENSE_NUMBER",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Animal_Name",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ANIMAL_NAME",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Species",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SPECIES",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Primary_Breed",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PRIMARY_BREED",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Secondary_Breed",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SECONDARY_BREED",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "ZIP_Code",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ZIP_CODE",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "DI_CREATED_DT",
+												"type": "String"
+											},
+											"sink": {
+												"name": "DI_CREATED_DATE",
+												"type": "DateTime"
+											}
+										},
+										{
+											"source": {
+												"name": "DI_JOB_ID",
+												"type": "String"
+											},
+											"sink": {
+												"name": "DI_JOB_ID",
+												"type": "String"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "AzureSqlTable1",
+									"type": "DatasetReference",
+									"parameters": {
+										"schema_name": {
+											"value": "@item().schema_name",
+											"type": "Expression"
+										},
+										"table_name": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_read_parquet",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"sname": {
+				"type": "string",
+				"defaultValue": "dbo"
+			}
+		},
+		"variables": {
+			"tablename": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
