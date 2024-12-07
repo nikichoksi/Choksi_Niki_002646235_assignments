@@ -228,7 +228,7 @@
 									"referenceName": "ds_read_parquet",
 									"type": "DatasetReference",
 									"parameters": {
-										"Directory": {
+										"FileName": {
 											"value": "@concat(item().table_name,'.parquet')",
 											"type": "Expression"
 										}
